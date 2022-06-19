@@ -1,13 +1,11 @@
 import cv2
 import imutils
 import numpy as np
-
 from imutils.video import VideoStream
 
-
 min_length = 150
-min_area = 250
-learning_rate = -1
+min_area = 100
+learning_rate = 0.05
 video = True
 
 if video:
