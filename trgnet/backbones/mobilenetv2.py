@@ -1,16 +1,10 @@
 import torch
-
-from torch import Tensor, nn
-from torchvision.models._utils import _make_divisible
+from torch import nn
 from torchvision._internally_replaced_utils import load_state_dict_from_url
+from torchvision.models._utils import _make_divisible
 
-from trgnet.misc import ConvNormActivation
 from trgnet.backbones.components import InvertedResidual
-
-
-model_urls = {
-    "mobilenet_v2": "https://download.pytorch.org/models/mobilenet_v2-b0353104.pth",
-}
+from trgnet.misc import ConvNormActivation
 
 
 class MobileNetV2(nn.Module):
@@ -47,7 +41,6 @@ class MobileNetV2(nn.Module):
                 [6, 320, 1, 1],
             ]
 
-        # building first layer
         input_channel = _make_divisible(input_channel * width_mult, round_nearest)
         self.last_channel = _make_divisible(
             last_channel * max(1.0, width_mult), round_nearest
@@ -61,7 +54,7 @@ class MobileNetV2(nn.Module):
                 activation_layer=nn.ReLU6,
             )
         ]
-        # building inverted residual blocks
+
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
             for i in range(n):
@@ -86,10 +79,7 @@ class MobileNetV2(nn.Module):
                 activation_layer=nn.ReLU6,
             )
         )
-        # make it nn.Sequential
         self.features = nn.Sequential(*features)
-
-        # building classifier
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(self.last_channel, num_classes),
@@ -104,29 +94,24 @@ class MobileNetV2(nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.ones_(m.weight)
                 nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.zeros_(m.bias)
 
-    def _forward_impl(self, x: Tensor) -> Tensor:
-        # This exists since TorchScript doesn't support inheritance, so the superclass method
-        # (this one) needs to have a name other than `forward` that can be accessed in a subclass
+    def _forward_impl(self, x):
         x = self.features(x)
-        # Cannot use "squeeze" as batch-size can be 1
         x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x):
         return self._forward_impl(x)
 
 
-def mobilenet_v2(pretrained=False, progress=True, **kwargs) -> MobileNetV2:
+def mobilenet_v2(pretrained=False, **kwargs):
     model = MobileNetV2(**kwargs)
+    model_url = "https://download.pytorch.org/models/mobilenet_v2-b0353104.pth"
+
     if pretrained:
-        state_dict = load_state_dict_from_url(
-            model_urls["mobilenet_v2"], progress=progress
-        )
+        state_dict = load_state_dict_from_url(model_url, progress=False)
         model.load_state_dict(state_dict)
+
     return model

@@ -4,12 +4,12 @@ import numpy as np
 from imutils.video import VideoStream
 
 min_length = 150
-min_area = 100
+min_area = 20
 learning_rate = 0.05
 video = True
 
 if video:
-    cap = cv2.VideoCapture("data/test.mp4")
+    cap = cv2.VideoCapture("data/vtest.mp4")
 else:
     cap = VideoStream(src=0).start()
 
