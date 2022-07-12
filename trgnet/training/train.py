@@ -5,9 +5,8 @@ from trgnet.training.reference.engine import train_one_epoch, evaluate
 from trgnet.training.utils import load_training, save_training
 
 
-def train(model, train_loader, validation_loader, epochs=1, load_epoch=None):
+def train(model, train_loader, validation_loader, epochs=1, load_epoch=7):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    load_epoch = 7 if load_epoch is None else load_epoch
 
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
@@ -20,3 +19,4 @@ def train(model, train_loader, validation_loader, epochs=1, load_epoch=None):
         train_one_epoch(model, optimizer, train_loader, device, epoch, print_freq=10)
         lr_scheduler.step()
         evaluate(model, validation_loader)
+        save_training(model, optimizer, epoch)

@@ -8,6 +8,8 @@ from torchvision.models.detection.anchor_utils import AnchorGenerator
 from torchvision.models.detection.rpn import RPNHead, RegionProposalNetwork
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
+from trgnet.grpm import GaussianRegionProposal
+
 
 class GeneralizedTRG(nn.Module):
     def __init__(self, backbone, rpn, roi_heads, transform):
@@ -16,14 +18,16 @@ class GeneralizedTRG(nn.Module):
         self.backbone = backbone
         self.rpn = rpn
         self.roi_heads = roi_heads
+        self.grpm = GaussianRegionProposal()
 
     def eager_outputs(self, losses, detections):
         if self.training:
             return losses
         return detections
 
-    def forward(self, images, targets=None):
+    def forward(self, images, use_grpm=False, grpm_image=None, targets=None):
         original_image_sizes = []
+        original_images = images
         for img in images:
             val = img.shape[-2:]
             assert len(val) == 2
@@ -34,7 +38,13 @@ class GeneralizedTRG(nn.Module):
         features = self.backbone(images.tensors)
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])
-        proposals, proposal_losses = self.rpn(images, features, targets)
+
+        if use_grpm:
+            proposals = self.grpm(grpm_image)
+            proposal_losses = {}
+        else:
+            proposals, proposal_losses = self.rpn(images, features, targets)
+
         detections, detector_losses = self.roi_heads(
             features, proposals, images.image_sizes, targets
         )
