@@ -1,5 +1,6 @@
 # Project
 data
+trgnet/training/checkpoints/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
