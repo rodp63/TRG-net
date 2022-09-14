@@ -2,10 +2,10 @@ from torch import nn
 from torchvision.models.detection.anchor_utils import AnchorGenerator
 from torchvision.models.detection.backbone_utils import _mobilenet_extractor
 
-from trgnet.trg import TRGNet, TRGNetPredictor
-from trgnet.misc import FrozenBatchNorm2d
 from trgnet.backbones.mobilenetv3 import mobilenet_v3_large
+from trgnet.misc import FrozenBatchNorm2d
 from trgnet.training.utils import load_training
+from trgnet.trg import TRGNet, TRGNetPredictor
 
 
 def trgnet_mobilenet_v3_large(pretrained=False, num_classes=10, **kwargs):

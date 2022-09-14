@@ -1,9 +1,9 @@
-import os
 import csv
+import os
+
 import torch
 import torchvision
 import torchvision.transforms as transforms
-
 from PIL import Image
 from torchvision.datasets.vision import VisionDataset
 

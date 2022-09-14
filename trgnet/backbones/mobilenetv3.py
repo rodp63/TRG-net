@@ -1,8 +1,9 @@
-from torch import nn
 from functools import partial
 
-from trgnet.misc import ConvNormActivation
+from torch import nn
+
 from trgnet.backbones.components import InvertedResidual, InvertedResidualConfig
+from trgnet.misc import ConvNormActivation
 
 
 class MobileNetV3(nn.Module):

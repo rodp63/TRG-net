@@ -1,33 +1,34 @@
+from collections import OrderedDict
+
 import torch
 import torch.nn.functional as F
-
 from torch import nn
-from torchvision.ops import MultiScaleRoIAlign
-from torchvision.models.detection.roi_heads import RoIHeads
 from torchvision.models.detection.anchor_utils import AnchorGenerator
-from torchvision.models.detection.rpn import RPNHead, RegionProposalNetwork
+from torchvision.models.detection.roi_heads import RoIHeads
+from torchvision.models.detection.rpn import RegionProposalNetwork, RPNHead
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
+from torchvision.ops import MultiScaleRoIAlign
 
 from trgnet.grpm import GaussianRegionProposal
+from trgnet.timer import Timer
 
 
 class GeneralizedTRG(nn.Module):
-    def __init__(self, backbone, rpn, roi_heads, transform):
+    def __init__(self, backbone, rpn, roi_heads, transform, grpm):
         super().__init__()
         self.transform = transform
         self.backbone = backbone
         self.rpn = rpn
         self.roi_heads = roi_heads
-        self.grpm = GaussianRegionProposal()
+        self.grpm = grpm
+        self.timer = Timer()
 
     def eager_outputs(self, losses, detections):
-        if self.training:
-            return losses
-        return detections
+        return losses if self.training else detections
 
-    def forward(self, images, use_grpm=False, grpm_image=None, targets=None):
+    def forward(self, images, targets=None, use_grpm=False, grpm_image=None):
+        self.timer.start("Total")
         original_image_sizes = []
-        original_images = images
         for img in images:
             val = img.shape[-2:]
             assert len(val) == 2
@@ -35,27 +36,37 @@ class GeneralizedTRG(nn.Module):
 
         images, targets = self.transform(images, targets)
 
+        self.timer.start("Backbone")
         features = self.backbone(images.tensors)
+        self.timer.stop("Backbone")
+
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])
 
+        self.timer.start("RPM")
         if use_grpm:
             proposals = self.grpm(grpm_image)
             proposal_losses = {}
         else:
             proposals, proposal_losses = self.rpn(images, features, targets)
+        self.timer.stop("RPM")
 
+        self.timer.start("RoI")
         detections, detector_losses = self.roi_heads(
             features, proposals, images.image_sizes, targets
         )
+        self.timer.stop("RoI")
+
         detections = self.transform.postprocess(
             detections, images.image_sizes, original_image_sizes
         )
 
         losses = {}
-        losses.update(detector_losses)
-        losses.update(proposal_losses)
+        if self.training:
+            losses.update(detector_losses)
+            losses.update(proposal_losses)
 
+        self.timer.stop("Total")
         return self.eager_outputs(losses, detections)
 
 
@@ -120,6 +131,9 @@ class TRGNet(GeneralizedTRG):
         box_batch_size_per_image=512,
         box_positive_fraction=0.25,
         bbox_reg_weights=None,
+        # GRPM
+        grpm_min_area=20,
+        grpm_lr=-1,
     ):
         out_channels = backbone.out_channels
 
@@ -161,7 +175,7 @@ class TRGNet(GeneralizedTRG):
         if box_head is None:
             resolution = box_roi_pool.output_size[0]
             representation_size = 1024
-            box_head = TwoMLPHead(out_channels * resolution**2, representation_size)
+            box_head = TwoMLPHead(out_channels * resolution ** 2, representation_size)
 
         if box_predictor is None:
             representation_size = 1024
@@ -187,4 +201,6 @@ class TRGNet(GeneralizedTRG):
             image_std = [0.229, 0.224, 0.225]
         transform = GeneralizedRCNNTransform(min_size, max_size, image_mean, image_std)
 
-        super().__init__(backbone, rpn, roi_heads, transform)
+        grpm = GaussianRegionProposal(grpm_min_area, grpm_lr)
+
+        super().__init__(backbone, rpn, roi_heads, transform, grpm)

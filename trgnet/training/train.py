@@ -1,7 +1,7 @@
 import torch
-import trgnet.training.reference.utils as utils
 
-from trgnet.training.reference.engine import train_one_epoch, evaluate
+import trgnet.training.reference.utils as utils
+from trgnet.training.reference.engine import evaluate, train_one_epoch
 from trgnet.training.utils import load_training, save_training
 
 

@@ -1,11 +1,12 @@
 import os
+
 import torch
 
 
 def load_training(model, optimizer=None, epoch=7):
     file_path = os.path.dirname(os.path.abspath(__file__))
     pt_path = os.path.join(file_path, f"checkpoints/model{epoch}.pt")
-    checkpoint = torch.load(pt_path)
+    checkpoint = torch.load(pt_path, map_location=torch.device("cpu"))
 
     model.load_state_dict(checkpoint["model_state_dict"])
     if optimizer is not None:
