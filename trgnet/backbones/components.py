@@ -1,9 +1,9 @@
 from functools import partial
 
 from torch import nn
-from torchvision.models._utils import _make_divisible
 
 from trgnet.misc import ConvNormActivation, SqueezeExcitation
+from trgnet.utils import _make_divisible
 
 
 class InvertedResidualConfig:

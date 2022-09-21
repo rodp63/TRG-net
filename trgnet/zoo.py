@@ -1,8 +1,8 @@
 from torch import nn
-from torchvision.models.detection.anchor_utils import AnchorGenerator
-from torchvision.models.detection.backbone_utils import _mobilenet_extractor
 
+from trgnet.anchor import AnchorGenerator
 from trgnet.backbones.mobilenetv3 import mobilenet_v3_large
+from trgnet.backbones.utils import mobilenet_extractor
 from trgnet.misc import FrozenBatchNorm2d
 from trgnet.training.utils import load_training
 from trgnet.trg import TRGNet, TRGNetPredictor
@@ -19,7 +19,7 @@ def trgnet_mobilenet_v3_large(pretrained=False, num_classes=10, **kwargs):
     kwargs = {**defaults, **kwargs}
 
     backbone = mobilenet_v3_large(norm_layer=FrozenBatchNorm2d)
-    backbone = _mobilenet_extractor(backbone, True, 3)
+    backbone = mobilenet_extractor(backbone, True, 3)
 
     anchor_sizes = ((32, 64, 128, 256, 512),) * 3
     aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)

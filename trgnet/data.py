@@ -2,9 +2,8 @@ import csv
 import os
 
 import torch
-import torchvision
-import torchvision.transforms as transforms
 from PIL import Image
+from torchvision import transforms
 from torchvision.datasets.vision import VisionDataset
 
 
@@ -25,13 +24,13 @@ class Kitti(VisionDataset):
     ]
 
     def __init__(
-        self, root, train=True, transform=None, target_transform=None, transforms=None
+        self, root, train=True, transform=None, target_transform=None, _transforms=None
     ):
         super().__init__(
             root,
             transform=transform,
             target_transform=target_transform,
-            transforms=transforms,
+            transforms=_transforms,
         )
         self.images = []
         self.targets = []

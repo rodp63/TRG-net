@@ -1,7 +1,6 @@
 import math
 
 import torch
-
 from torch import nn
 
 
@@ -27,7 +26,8 @@ class AnchorGenerator(nn.Module):
         self.sizes = sizes
         self.aspect_ratios = aspect_ratios
         self.cell_anchors = [
-            self.generate_anchors(size, aspect_ratio) for size, aspect_ratio in zip(sizes, aspect_ratios)
+            self.generate_anchors(size, aspect_ratio)
+            for size, aspect_ratio in zip(sizes, aspect_ratios)
         ]
 
     def generate_anchors(
@@ -49,7 +49,10 @@ class AnchorGenerator(nn.Module):
         return base_anchors.round()
 
     def set_cell_anchors(self, dtype, device):
-        self.cell_anchors = [cell_anchor.to(dtype=dtype, device=device) for cell_anchor in self.cell_anchors]
+        self.cell_anchors = [
+            cell_anchor.to(dtype=dtype, device=device)
+            for cell_anchor in self.cell_anchors
+        ]
 
     def num_anchors_per_location(self):
         return [len(s) * len(a) for s, a in zip(self.sizes, self.aspect_ratios)]
@@ -72,18 +75,26 @@ class AnchorGenerator(nn.Module):
             stride_height, stride_width = stride
             device = base_anchors.device
 
-            shifts_x = torch.arange(0, grid_width, dtype=torch.int32, device=device) * stride_width
-            shifts_y = torch.arange(0, grid_height, dtype=torch.int32, device=device) * stride_height
+            shifts_x = (
+                torch.arange(0, grid_width, dtype=torch.int32, device=device)
+                * stride_width
+            )
+            shifts_y = (
+                torch.arange(0, grid_height, dtype=torch.int32, device=device)
+                * stride_height
+            )
             shift_y, shift_x = torch.meshgrid(shifts_y, shifts_x, indexing="ij")
             shift_x = shift_x.reshape(-1)
             shift_y = shift_y.reshape(-1)
             shifts = torch.stack((shift_x, shift_y, shift_x, shift_y), dim=1)
 
-            anchors.append((shifts.view(-1, 1, 4) + base_anchors.view(1, -1, 4)).reshape(-1, 4))
+            anchors.append(
+                (shifts.view(-1, 1, 4) + base_anchors.view(1, -1, 4)).reshape(-1, 4)
+            )
 
         return anchors
 
-    def forward(self, image_list: ImageList, feature_maps: List[Tensor]) -> List[Tensor]:
+    def forward(self, image_list, feature_maps):
         grid_sizes = [feature_map.shape[-2:] for feature_map in feature_maps]
         image_size = image_list.tensors.shape[-2:]
         dtype, device = feature_maps[0].dtype, feature_maps[0].device
@@ -96,9 +107,12 @@ class AnchorGenerator(nn.Module):
         ]
         self.set_cell_anchors(dtype, device)
         anchors_over_all_feature_maps = self.grid_anchors(grid_sizes, strides)
-        anchors: List[List[torch.Tensor]] = []
+        anchors = []
         for _ in range(len(image_list.image_sizes)):
-            anchors_in_image = [anchors_per_feature_map for anchors_per_feature_map in anchors_over_all_feature_maps]
+            anchors_in_image = [
+                anchors_per_feature_map
+                for anchors_per_feature_map in anchors_over_all_feature_maps
+            ]
             anchors.append(anchors_in_image)
         anchors = [torch.cat(anchors_per_image) for anchors_per_image in anchors]
         return anchors

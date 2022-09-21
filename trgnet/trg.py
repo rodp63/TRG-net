@@ -3,13 +3,13 @@ from collections import OrderedDict
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torchvision.models.detection.anchor_utils import AnchorGenerator
 from torchvision.models.detection.roi_heads import RoIHeads
-from torchvision.models.detection.rpn import RegionProposalNetwork, RPNHead
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 from torchvision.ops import MultiScaleRoIAlign
 
+from trgnet.anchor import AnchorGenerator
 from trgnet.grpm import GaussianRegionProposal
+from trgnet.rpn import RegionProposalNetwork, RPNHead
 from trgnet.timer import Timer
 
 
