@@ -3,9 +3,9 @@ import os
 import torch
 
 
-def load_training(model, optimizer=None, epoch=7):
-    file_path = os.path.dirname(os.path.abspath(__file__))
-    pt_path = os.path.join(file_path, f"checkpoints/model{epoch}.pt")
+def load_training(model, optimizer=None, epoch=7, name="trgnet"):
+    user_path = os.path.expanduser("~")
+    pt_path = os.path.join(user_path, f".trgnet/checkpoints/{name}-{epoch}.pt")
     checkpoint = torch.load(pt_path, map_location=torch.device("cpu"))
 
     model.load_state_dict(checkpoint["model_state_dict"])
@@ -18,9 +18,9 @@ def load_training(model, optimizer=None, epoch=7):
     return model
 
 
-def save_training(model, optimizer, epoch):
-    file_path = os.path.dirname(os.path.abspath(__file__))
-    pt_path = os.path.join(file_path, f"checkpoints/model{epoch}.pt")
+def save_training(model, optimizer, epoch, name="trgnet"):
+    user_path = os.path.expanduser("~")
+    pt_path = os.path.join(user_path, f".trgnet/checkpoints/{name}-{epoch}.pt")
 
     torch.save(
         {

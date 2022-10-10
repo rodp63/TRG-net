@@ -8,6 +8,7 @@ from torchvision.datasets.vision import VisionDataset
 
 
 class Kitti(VisionDataset):
+    root = ".trgnet/data"
     image_dir_name = "image_2"
     labels_dir_name = "label_2"
     classes = [
@@ -24,17 +25,16 @@ class Kitti(VisionDataset):
     ]
 
     def __init__(
-        self, root, train=True, transform=None, target_transform=None, _transforms=None
+        self, train=True, transform=None, target_transform=None, _transforms=None
     ):
         super().__init__(
-            root,
+            self.root,
             transform=transform,
             target_transform=target_transform,
             transforms=_transforms,
         )
         self.images = []
         self.targets = []
-        self.root = root
         self.train = train
         self._location = "training" if self.train else "testing"
 
@@ -82,8 +82,8 @@ class Kitti(VisionDataset):
 
     @property
     def _raw_folder(self):
-        file_path = os.path.dirname(os.path.abspath(__file__))
-        root_path = os.path.join(file_path, self.root)
+        user_path = os.path.expanduser("~")
+        root_path = os.path.join(user_path, self.root)
         return os.path.join(root_path, self.__class__.__name__, "raw")
 
 
@@ -95,7 +95,6 @@ def get_kitti_loaders(batch_size=64):
         ]
     )
     dataset = Kitti(
-        root="../data",
         train=True,
         transform=image_transform,
     )
