@@ -25,7 +25,12 @@ class Kitti(VisionDataset):
     ]
 
     def __init__(
-        self, train=True, transform=None, target_transform=None, _transforms=None
+        self,
+        train=True,
+        transform=None,
+        target_transform=None,
+        _transforms=None,
+        base_path=None,
     ):
         super().__init__(
             self.root,
@@ -36,6 +41,7 @@ class Kitti(VisionDataset):
         self.images = []
         self.targets = []
         self.train = train
+        self.base_path = base_path
         self._location = "training" if self.train else "testing"
 
         image_dir = os.path.join(self._raw_folder, self._location, self.image_dir_name)
@@ -44,6 +50,8 @@ class Kitti(VisionDataset):
                 self._raw_folder, self._location, self.labels_dir_name
             )
         for img_file in os.listdir(image_dir):
+            if "(" in img_file:
+                continue
             self.images.append(os.path.join(image_dir, img_file))
             if self.train:
                 self.targets.append(
@@ -82,12 +90,15 @@ class Kitti(VisionDataset):
 
     @property
     def _raw_folder(self):
-        user_path = os.path.expanduser("~")
-        root_path = os.path.join(user_path, self.root)
+        if self.base_path:
+            root_path = self.base_path
+        else:
+            user_path = os.path.expanduser("~")
+            root_path = os.path.join(user_path, self.root)
         return os.path.join(root_path, self.__class__.__name__, "raw")
 
 
-def get_kitti_loaders(batch_size=64):
+def get_kitti_loaders(batch_size=64, data_base_path=None):
     image_transform = transforms.Compose(
         [
             transforms.Resize((375, 1242)),
@@ -97,6 +108,7 @@ def get_kitti_loaders(batch_size=64):
     dataset = Kitti(
         train=True,
         transform=image_transform,
+        base_path=data_base_path,
     )
     train_set, validation_set, test_set = torch.utils.data.random_split(
         dataset, [6000, 700, 781]
