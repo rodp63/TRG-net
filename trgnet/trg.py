@@ -45,7 +45,8 @@ class GeneralizedTRG(nn.Module):
 
         self.timer.start("RPM")
         if use_grpm:
-            proposals = self.grpm(grpm_image)
+            new_size = (images.tensors.shape[3], images.tensors.shape[2])
+            proposals = self.grpm(grpm_image, new_size)
             proposal_losses = {}
         else:
             proposals, proposal_losses = self.rpn(images, features, targets)
@@ -134,6 +135,7 @@ class TRGNet(GeneralizedTRG):
         # GRPM
         grpm_min_area=20,
         grpm_lr=-1,
+        grpm_show_output=False,
     ):
         out_channels = backbone.out_channels
 
@@ -201,6 +203,6 @@ class TRGNet(GeneralizedTRG):
             image_std = [0.229, 0.224, 0.225]
         transform = GeneralizedRCNNTransform(min_size, max_size, image_mean, image_std)
 
-        grpm = GaussianRegionProposal(grpm_min_area, grpm_lr)
+        grpm = GaussianRegionProposal(grpm_min_area, grpm_lr, grpm_show_output)
 
         super().__init__(backbone, rpn, roi_heads, transform, grpm)

@@ -8,7 +8,7 @@ def load_training(model, optimizer=None, epoch=7, name="trgnet"):
     pt_path = os.path.join(user_path, f".trgnet/checkpoints/{name}-{epoch}.pt")
     checkpoint = torch.load(pt_path, map_location=torch.device("cpu"))
 
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model.load_state_dict(checkpoint["model_state_dict"], strict=False)
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
