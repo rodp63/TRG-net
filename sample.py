@@ -14,19 +14,20 @@ from trgnet.zoo import trgnet_mobilenet_v3_large
 
 video = True
 use_grpm = True
-grpm_show_output = True
+grpm_show_output = False
 
+# Important! play with the grpm parameters
 model = trgnet_mobilenet_v3_large(
     pretrained=True,
     grpm_min_area=35,
-    grpm_lr=float(sys.argv[1]),
+    grpm_lr=0.01,
     grpm_show_output=grpm_show_output,
 )
 model.eval()
 
 
 if video:
-    cap = cv2.VideoCapture("data/test.mp4")
+    cap = cv2.VideoCapture("data/un_dia_en_manhattan.mp4")
 else:
     cap = VideoStream(src=0).start()
 
