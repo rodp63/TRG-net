@@ -496,7 +496,6 @@ def _copy_paste(
     blending: bool = True,
     resize_interpolation: F.InterpolationMode = F.InterpolationMode.BILINEAR,
 ) -> Tuple[torch.Tensor, Dict[str, Tensor]]:
-
     # Random paste targets selection:
     num_masks = len(paste_target["masks"])
 

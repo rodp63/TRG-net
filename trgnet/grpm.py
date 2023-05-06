@@ -14,7 +14,7 @@ class GaussianRegionProposal(nn.Module):
         self.gmm = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
-    def forward(self, image, new_size):
+    def forward(self, image, new_size, save_output=False):
         boxes = []
         image = cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
         mask = self.gmm.apply(image, learningRate=self.lr)
@@ -25,6 +25,7 @@ class GaussianRegionProposal(nn.Module):
             img_close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
 
+        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB)
         for cnt in contours:
             if cv2.contourArea(cnt) >= self.min_area:
                 x, y, w, h = cv2.boundingRect(cnt)
@@ -37,12 +38,14 @@ class GaussianRegionProposal(nn.Module):
                         )
                     )
                 if self.show:
-                    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.rectangle(mask, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         if len(boxes) == 0:
             boxes = [torch.Tensor([0, 0, 1, 1])]
+
         if self.show:
-            cv2.imshow("grpm", image)
             cv2.imshow("mask", mask)
+            if save_output:
+                cv2.imwrite("mask.png", mask)
 
         return [torch.stack(boxes)]

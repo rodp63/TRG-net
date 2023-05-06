@@ -126,7 +126,6 @@ class RegionProposalNetwork(nn.Module):
         return self._post_nms_top_n["testing"]
 
     def assign_targets_to_anchors(self, anchors, targets):
-
         labels = []
         matched_gt_boxes = []
         for anchors_per_image, targets_per_image in zip(anchors, targets):
