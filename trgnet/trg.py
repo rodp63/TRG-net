@@ -1,7 +1,12 @@
 from collections import OrderedDict
+from copy import copy
 
+import cv2
+import numpy as np
 import torch
 import torch.nn.functional as F
+import torchvision.transforms as transforms
+from PIL import Image
 from torch import nn
 from torchvision.models.detection.roi_heads import RoIHeads
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
@@ -26,9 +31,16 @@ class GeneralizedTRG(nn.Module):
     def eager_outputs(self, losses, detections):
         return losses if self.training else detections
 
-    def forward(self, images, targets=None, use_grpm=False, grpm_image=None):
+    def forward(self, frame, targets=None, use_grpm=False):
         self.timer.start("Total")
         original_image_sizes = []
+
+        if isinstance(frame, np.ndarray):
+            pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            images = transforms.ToTensor()(pil_img).unsqueeze_(0)
+        else:
+            images = frame
+
         for img in images:
             val = img.shape[-2:]
             assert len(val) == 2
@@ -45,8 +57,12 @@ class GeneralizedTRG(nn.Module):
 
         self.timer.start("RPM")
         if use_grpm:
+            if not isinstance(frame, np.ndarray):
+                frame = transforms.ToPILImage()(images.squeeze(0))
+                frame = np.flip(np.asarray(grpm_image), 2)
+
             new_size = (images.tensors.shape[3], images.tensors.shape[2])
-            proposals = self.grpm(grpm_image, new_size)
+            proposals = self.grpm(frame, new_size)
             proposal_losses = {}
         else:
             proposals, proposal_losses = self.rpn(images, features, targets)
