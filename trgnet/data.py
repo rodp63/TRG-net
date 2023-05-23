@@ -4,6 +4,7 @@ import os
 import torch
 from PIL import Image
 from torchvision import transforms
+from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.datasets.vision import VisionDataset
 
 
@@ -11,6 +12,12 @@ class Kitti(VisionDataset):
     root = ".trgnet/data"
     image_dir_name = "image_2"
     labels_dir_name = "label_2"
+    data_url = "https://s3.eu-central-1.amazonaws.com/avg-kitti/"
+    resources = [
+        "data_object_image_2.zip",
+        "data_object_label_2.zip",
+    ]
+
     classes = [
         "Background",
         "Car",
@@ -31,6 +38,7 @@ class Kitti(VisionDataset):
         target_transform=None,
         _transforms=None,
         base_path=None,
+        download=False,
     ):
         super().__init__(
             self.root,
@@ -43,6 +51,13 @@ class Kitti(VisionDataset):
         self.train = train
         self.base_path = base_path
         self._location = "training" if self.train else "testing"
+
+        if download:
+            self.download()
+        if not self._check_exists():
+            raise RuntimeError(
+                "Dataset not found. You may use download=True to download it."
+            )
 
         image_dir = os.path.join(self._raw_folder, self._location, self.image_dir_name)
         if self.train:
@@ -96,6 +111,27 @@ class Kitti(VisionDataset):
             user_path = os.path.expanduser("~")
             root_path = os.path.join(user_path, self.root)
         return os.path.join(root_path, self.__class__.__name__, "raw")
+
+    def _check_exists(self):
+        folders = [self.image_dir_name]
+        if self.train:
+            folders.append(self.labels_dir_name)
+        return all(
+            os.path.isdir(os.path.join(self._raw_folder, self._location, fname))
+            for fname in folders
+        )
+
+    def download(self):
+        if self._check_exists():
+            return
+
+        os.makedirs(self._raw_folder, exist_ok=True)
+        for fname in self.resources:
+            download_and_extract_archive(
+                url=f"{self.data_url}{fname}",
+                download_root=self._raw_folder,
+                filename=fname,
+            )
 
 
 def get_kitti_loaders(batch_size=64, data_base_path=None):

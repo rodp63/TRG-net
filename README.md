@@ -13,7 +13,7 @@ $ pip install -r requirements.txt
 $ python setup.py install
 ```
 
-Paste the pre-trained model in the following route: `~/.trgnet/checkpoints/`, feel free to send us an email for the `.pt` file. If you want to train the model by yourself review the [following guide]().
+Paste the pre-trained model in the following route: `~/.trgnet/checkpoints/`, feel free to send us an email for the `.pt` file. If you want to train the model by yourself run the `train.py` file. TRG-Net uses the [Kitti](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=2d) dataset, the dataset will be automatically downloaded if not present.
 
 Finally, run the `sample.py` script to run the model and start detecting moving objects.
 
