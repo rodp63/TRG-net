@@ -40,6 +40,7 @@ with torch.no_grad():
             if frame is None:
                 break
 
+        frame = cv2.resize(frame, (480, 320), interpolation=cv2.INTER_AREA)
         a = time.time()
         pred = model(frame, use_grpm=use_grpm)
         b = time.time()

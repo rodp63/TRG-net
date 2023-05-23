@@ -16,11 +16,13 @@ class GaussianRegionProposal(nn.Module):
 
     def forward(self, image, new_size, save_output=False):
         boxes = []
-        image = cv2.resize(image, new_size, interpolation=cv2.INTER_AREA)
+        if new_size != (image.shape[1], image.shape[0]):
+            image = cv2.resize(image, new_size, interpolation=cv2.INTER_LINEAR)
+
         mask = self.gmm.apply(image, learningRate=self.lr)
         mask[mask < 255] = 0
 
-        img_close = cv2.morphologyEx(mask, cv2.MORPH_OPEN, self.kernel)
+        img_close = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, self.kernel)
         contours, hierarchy = cv2.findContours(
             img_close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
