@@ -55,10 +55,13 @@ class CocoEvaluator:
         for coco_eval in self.coco_eval.values():
             coco_eval.accumulate()
 
-    def summarize(self):
-        for iou_type, coco_eval in self.coco_eval.items():
-            print(f"IoU metric: {iou_type}")
-            coco_eval.summarize()
+    def summarize(self, out_file="evaluation.txt"):
+        with open(out_file, "a") as _file:
+            for iou_type, coco_eval in self.coco_eval.items():
+                print(f"IoU metric: {iou_type}")
+                coco_eval.summarize()
+                _file.write(str(coco_eval))
+                _file.write("\n")
 
     def prepare(self, predictions, iou_type):
         if iou_type == "bbox":
