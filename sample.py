@@ -1,12 +1,10 @@
-import sys
-import time
-
 import cv2
 import torch
 import torchvision
 from imutils.video import VideoStream
 
 from trgnet.data import Kitti
+from trgnet.evaluator import Evaluator
 from trgnet.zoo import trgnet_mobilenet_v3_large
 
 video = True
@@ -17,10 +15,11 @@ grpm_show_output = True
 model = trgnet_mobilenet_v3_large(
     pretrained=True,
     grpm_min_area=35,
-    grpm_lr=0.01,
+    grpm_lr=0.015,
     grpm_show_output=grpm_show_output,
 )
 model.eval()
+ev = Evaluator("open & closed")
 
 
 if video:
@@ -41,17 +40,17 @@ with torch.no_grad():
                 break
 
         frame = cv2.resize(frame, (480, 320), interpolation=cv2.INTER_AREA)
-        a = time.time()
         pred = model(frame, use_grpm=use_grpm)
-        b = time.time()
+        ev.frame()
 
         for idx, b in enumerate(pred[0]["boxes"]):
             if pred[0]["scores"][idx] < 0.5:
                 continue
 
+            ev.update(pred[0]["scores"][idx])
             x1, y1, x2, y2 = b[0].item(), b[1].item(), b[2].item(), b[3].item()
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 1)
             cv2.putText(
                 frame,
                 "{} ({:.2f})".format(
@@ -71,6 +70,7 @@ with torch.no_grad():
         if k == 27:
             break
 
-    # model.timer.report()
+    model.timer.report(show=False)
+    ev.report()
     cap.release()
     cv2.destroyAllWindows()

@@ -1,5 +1,6 @@
 matplotlib
 imutils
 torch
-torchvision
+torchvision==0.14.1
 opencv-python
+tqdm

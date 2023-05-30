@@ -85,14 +85,17 @@ class Timer:
             label=topic,
         )
 
-    def report(self):
+    def report(self, show=True):
         colors = ["b", "g", "r", "c", "m", "y", "k"]
+        print("")
         for i, topic in enumerate(self.records):
             print(f"- {topic}:")
             print(f"  - number of records: {len(self.records[topic])}")
             print(f"  - mean: {self.__mean(topic)}")
             print(f"  - max: {self.__max(topic)}")
             print(f"  - min: {self.__min(topic)}")
-            self.__plot(topic, colors[i % len(colors)])
-        plt.legend()
-        plt.show()
+            if show:
+                self.__plot(topic, colors[i % len(colors)])
+        if show:
+            plt.legend()
+            plt.show()
