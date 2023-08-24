@@ -2,6 +2,7 @@ import time
 from enum import Enum, auto
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Status(Enum):
@@ -75,6 +76,10 @@ class Timer:
         records = self.records.get(topic, [])
         return min([r.total_time() for r in records]) if len(records) > 0 else 0
 
+    def __std(self, topic):
+        records = self.records.get(topic, [])
+        return np.std([r.total_time() for r in records]) if len(records) > 0 else 0
+
     def __plot(self, topic, color):
         records = self.records.get(topic, [])
         plt.hist(
@@ -94,6 +99,7 @@ class Timer:
             print(f"  - mean: {self.__mean(topic)}")
             print(f"  - max: {self.__max(topic)}")
             print(f"  - min: {self.__min(topic)}")
+            print(f"  - std: {self.__std(topic)}")
             if show:
                 self.__plot(topic, colors[i % len(colors)])
         if show:
