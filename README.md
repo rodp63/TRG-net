@@ -1,6 +1,6 @@
 # TRG-net
 
-This is the official code of TRG-Net, the proposal of our paper [A Lightweight Gaussian-Based Model for Fast Detection and Classification of Moving Objects](https://www.scitepress.org/PublicationsDetail.aspx?ID=bOi2/1Qh7c0=&t=1).
+This is the official code of TRG-Net, the proposal of our paper [A Lightweight Gaussian-Based Model for Fast Detection and Classification of Moving Objects](https://www.scitepress.org/PublicationsDetail.aspx?ID=bOi2/1Qh7c0=&t=1). TRG-Net is a unified model that can be executed on computationally limited devices to detect and classify only moving objects. This solution is based on the Faster R-CNN architecture, but with a novel GMM-based region proposal method.
 
 ![sample](resources/sample_1.gif)
 
